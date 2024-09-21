@@ -2,10 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const app = express();
 const port = 3000;
-const client = require('./db/conn.js');
+const client = require('./db/conn.js'); // Ensure this is the correct path to your conn.js
 const cors = require('cors');
-
-
 
 app.use(cors()); // to allow frontend API calls to backend we use this and to resolve the CORS error
 app.use('/uploads', express.static('uploads'));
@@ -21,6 +19,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// Upload a blog
 app.post('/blog', async (req, res) => {
   try {
     const result = await client.query(
@@ -34,15 +33,16 @@ app.post('/blog', async (req, res) => {
   }
 });
 
+// Get all the blogs
 app.get('/blog/:cat', async (req, res) => {
   const { cat } = req.params;
 
   try {
       let result;
       if (cat === 'all') {
-          result = await pool.query('SELECT * FROM blogs');
+          result = await client.query('SELECT * FROM blogs');
       } else {
-          result = await pool.query('SELECT * FROM blogs WHERE category = $1', [cat]);
+          result = await client.query('SELECT * FROM blogs WHERE category = $1', [cat]);
       }
       res.json(result.rows);
   } catch (error) {
@@ -51,17 +51,7 @@ app.get('/blog/:cat', async (req, res) => {
   }
 });
 
-// app.get('/', async (req, res) => {
-//   try {
-//       const result = await pool.query('SELECT * FROM blogs');
-//       res.json(result.rows);
-//   } catch (error) {
-//       console.error('Error executing query', error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
-
-
+// Get blog by ID
 app.get('/blogbyid/:id', async (req, res) => {
   try {
     const result = await client.query('SELECT * FROM blogs WHERE id = $1', [req.params.id]);
